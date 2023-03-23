@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flow_chart_editor/components/background_pattern_canvas.dart';
 import 'package:flow_chart_editor/components/flow_node/flow_node.dart';
 import 'package:flow_chart_editor/components/flow_node/flow_node_connection_canvas.dart';
 import 'package:flow_chart_editor/components/flow_node/flow_node_connection_data.dart';
@@ -33,6 +34,7 @@ class FlowCanvas extends HookWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
+        BackgroundPatternCanvas(),
         FlowNodeConnectionCanvas(nodes.value, connections.value),
         ...nodes.value
             .map(
