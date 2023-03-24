@@ -2,6 +2,8 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:flow_chart_editor/components/flow_node/flow_node_connection_data.dart';
+
 enum FlowNodeType {
   standard,
 }
@@ -18,8 +20,56 @@ class FlowNodeData {
     this.size = Size.zero,
   });
 
-  Offset get center =>
-      Offset(position.dx + size.width / 2, position.dy + size.height / 2);
+  Offset pointFromAnchor(FlowNodeAnchor anchor) {
+    switch (anchor) {
+      case FlowNodeAnchor.top:
+        return topCenter;
+      case FlowNodeAnchor.bottom:
+        return bottomCenter;
+      case FlowNodeAnchor.right:
+        return rightCenter;
+      case FlowNodeAnchor.left:
+        return leftCenter;
+      case FlowNodeAnchor.center:
+        return center;
+    }
+  }
+
+  Offset offsetFromAnchor(FlowNodeAnchor anchor, [double offset = 20]) {
+    switch (anchor) {
+      case FlowNodeAnchor.top:
+        return Offset(0, -offset);
+      case FlowNodeAnchor.bottom:
+        return Offset(0, offset);
+      case FlowNodeAnchor.right:
+        return Offset(offset, 0);
+      case FlowNodeAnchor.left:
+        return Offset(-offset, 0);
+      case FlowNodeAnchor.center:
+        return center;
+    }
+  }
+
+  Offset get center => Offset(
+        position.dx + size.width / 2,
+        position.dy + size.height / 2,
+      );
+  Offset get leftCenter => Offset(
+        position.dx,
+        position.dy + size.height / 2,
+      );
+  Offset get topCenter => Offset(
+        position.dx + size.width / 2,
+        position.dy,
+      );
+  Offset get rightCenter => Offset(
+        position.dx + size.width,
+        position.dy + size.height / 2,
+      );
+  Offset get bottomCenter => Offset(
+        position.dx + size.width / 2,
+        position.dy + size.height,
+      );
 
   FlowNodeData copyWith({
     String? id,

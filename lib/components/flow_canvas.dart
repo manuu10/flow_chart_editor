@@ -15,20 +15,50 @@ class FlowCanvas extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final nodes = useState([
-      FlowNodeData(id: "A", position: const Offset(50, 50)),
-      FlowNodeData(id: "B", position: const Offset(200, 50)),
-      FlowNodeData(id: "C", position: const Offset(50, 200)),
-      FlowNodeData(id: "D", position: const Offset(50, 200)),
-      FlowNodeData(id: "E", position: const Offset(50, 200)),
+      FlowNodeData(id: "A", position: const Offset(82, 444)),
+      FlowNodeData(id: "B", position: const Offset(214, 149)),
+      FlowNodeData(id: "C", position: const Offset(461, 276)),
+      FlowNodeData(id: "D", position: const Offset(153, 774)),
+      FlowNodeData(id: "E", position: const Offset(434, 635)),
     ]);
 
     final connections = useState([
-      FlowNodeConnection(fromNodeID: "A", toNodeID: "B"),
-      FlowNodeConnection(fromNodeID: "A", toNodeID: "C"),
-      FlowNodeConnection(fromNodeID: "B", toNodeID: "C"),
-      FlowNodeConnection(fromNodeID: "A", toNodeID: "D"),
-      FlowNodeConnection(fromNodeID: "C", toNodeID: "E"),
-      FlowNodeConnection(fromNodeID: "E", toNodeID: "D"),
+      FlowNodeConnection(
+        fromNodeID: "A",
+        toNodeID: "B",
+        fromAnchor: FlowNodeAnchor.top,
+        toAnchor: FlowNodeAnchor.left,
+      ),
+      FlowNodeConnection(
+        fromNodeID: "A",
+        toNodeID: "C",
+        fromAnchor: FlowNodeAnchor.right,
+        toAnchor: FlowNodeAnchor.left,
+      ),
+      FlowNodeConnection(
+        fromNodeID: "B",
+        toNodeID: "C",
+        fromAnchor: FlowNodeAnchor.right,
+        toAnchor: FlowNodeAnchor.left,
+      ),
+      FlowNodeConnection(
+        fromNodeID: "A",
+        toNodeID: "D",
+        fromAnchor: FlowNodeAnchor.bottom,
+        toAnchor: FlowNodeAnchor.left,
+      ),
+      FlowNodeConnection(
+        fromNodeID: "C",
+        toNodeID: "E",
+        fromAnchor: FlowNodeAnchor.bottom,
+        toAnchor: FlowNodeAnchor.top,
+      ),
+      FlowNodeConnection(
+        fromNodeID: "E",
+        toNodeID: "D",
+        fromAnchor: FlowNodeAnchor.bottom,
+        toAnchor: FlowNodeAnchor.right,
+      ),
     ]);
 
     return Stack(
