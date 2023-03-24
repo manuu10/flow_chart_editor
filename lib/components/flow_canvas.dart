@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:context_menus/context_menus.dart';
 import 'package:flow_chart_editor/components/background_pattern_canvas.dart';
 import 'package:flow_chart_editor/components/flow_node/flow_node.dart';
 import 'package:flow_chart_editor/components/flow_node/flow_node_connection_canvas.dart';
@@ -61,32 +62,61 @@ class FlowCanvas extends HookWidget {
       ),
     ]);
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        BackgroundPatternCanvas(),
-        FlowNodeConnectionCanvas(nodes.value, connections.value),
-        ...nodes.value
-            .map(
-              (e) => FlowNode(
-                onSizeChange: (Size size) {
-                  nodes.value = nodes.value.map((nd) {
-                    if (e != nd) return nd;
-                    return nd.copyWith(size: size);
-                  }).toList();
-                },
-                onMove: (pos, delta) => nodes.value = nodes.value.map((nd) {
-                  if (e != nd) return nd;
-                  return nd.copyWith(position: pos);
-                }).toList(),
-                position: e.position,
-                child: Text(
-                  "${e.id}\n${e.position}\n${e.size}",
-                ),
-              ),
-            )
-            .toList()
-      ],
+    final mousePosition = useState(Offset.zero);
+
+    return MouseRegion(
+      onHover: (event) {
+        mousePosition.value = event.localPosition;
+      },
+      child: ContextMenuRegion(
+        contextMenu: GenericContextMenu(
+          buttonConfigs: [
+            ContextMenuButtonConfig(
+              "Create New Node",
+              onPressed: () {
+                final id = Random().nextInt(3000).toString();
+                nodes.value = [
+                  ...nodes.value,
+                  FlowNodeData(id: id, position: mousePosition.value),
+                ];
+              },
+              icon: const Icon(Icons.add),
+            ),
+            ContextMenuButtonConfig(
+              "Close",
+              onPressed: () {},
+              icon: const Icon(Icons.close),
+            ),
+          ],
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            BackgroundPatternCanvas(),
+            FlowNodeConnectionCanvas(nodes.value, connections.value),
+            ...nodes.value
+                .map(
+                  (e) => FlowNode(
+                    onSizeChange: (Size size) {
+                      nodes.value = nodes.value.map((nd) {
+                        if (e != nd) return nd;
+                        return nd.copyWith(size: size);
+                      }).toList();
+                    },
+                    onMove: (pos, delta) => nodes.value = nodes.value.map((nd) {
+                      if (e != nd) return nd;
+                      return nd.copyWith(position: pos);
+                    }).toList(),
+                    position: e.position,
+                    child: Text(
+                      "${e.id}\n${e.position}\n${e.size}",
+                    ),
+                  ),
+                )
+                .toList(),
+          ],
+        ),
+      ),
     );
   }
 }
