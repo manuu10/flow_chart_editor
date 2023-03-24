@@ -97,6 +97,11 @@ class FlowCanvas extends HookWidget {
             ...nodes.value
                 .map(
                   (e) => FlowNode(
+                    onRemove: () {
+                      nodes.value = nodes.value
+                          .where((element) => element.id != e.id)
+                          .toList();
+                    },
                     onSizeChange: (Size size) {
                       nodes.value = nodes.value.map((nd) {
                         if (e != nd) return nd;

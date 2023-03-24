@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:context_menus/context_menus.dart';
 import 'package:flow_chart_editor/components/measure_size.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -16,9 +17,11 @@ class FlowNode extends HookWidget {
     this.onMoveEnd,
     this.onMoveStart,
     this.onSizeChange,
+    this.onRemove,
   });
   final Offset position;
   final Widget child;
+  final VoidCallback? onRemove;
   final PointChangeCallBack? onMove;
   final PointChangeCallBack? onMoveEnd;
   final PointChangeCallBack? onMoveStart;
@@ -27,7 +30,7 @@ class FlowNode extends HookWidget {
   Widget build(BuildContext context) {
     final pos = useState(position);
     final isDragging = useState(false);
-    // final menuOpen = useState(false);
+    final isHovered = useState(false);
     useEffect(
       () {
         if (isDragging.value) return;
@@ -44,9 +47,12 @@ class FlowNode extends HookWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-              color: isDragging.value
-                  ? Color.fromARGB(255, 176, 74, 74)
-                  : const Color.fromRGBO(62, 62, 62, 1)),
+            color: isDragging.value
+                ? Color.fromARGB(255, 176, 74, 74)
+                : isHovered.value
+                    ? Color.fromARGB(255, 110, 187, 193)
+                    : const Color.fromRGBO(62, 62, 62, 1),
+          ),
           gradient: const LinearGradient(
             colors: [
               Color.fromARGB(255, 57, 57, 57),
@@ -66,10 +72,21 @@ class FlowNode extends HookWidget {
     return Positioned(
       left: pos.value.dx,
       top: pos.value.dy,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GestureDetector(
+      child: MouseRegion(
+        onEnter: (event) => isHovered.value = true,
+        onExit: (event) => isHovered.value = false,
+        cursor: SystemMouseCursors.click,
+        child: ContextMenuRegion(
+          contextMenu: GenericContextMenu(
+            buttonConfigs: [
+              ContextMenuButtonConfig(
+                "Remove",
+                icon: Icon(Icons.delete_forever),
+                onPressed: onRemove,
+              ),
+            ],
+          ),
+          child: GestureDetector(
             onPanStart: (details) {
               isDragging.value = true;
               onMoveStart?.call(pos.value, Offset.zero);
@@ -90,7 +107,7 @@ class FlowNode extends HookWidget {
               child: modChild,
             ),
           ),
-        ],
+        ),
       ),
     );
   }
