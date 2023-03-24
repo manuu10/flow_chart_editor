@@ -75,7 +75,7 @@ class FlowCanvas extends HookWidget {
                     return nd.copyWith(size: size);
                   }).toList();
                 },
-                onMove: (pos) => nodes.value = nodes.value.map((nd) {
+                onMove: (pos, delta) => nodes.value = nodes.value.map((nd) {
                   if (e != nd) return nd;
                   return nd.copyWith(position: pos);
                 }).toList(),

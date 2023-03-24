@@ -4,7 +4,7 @@ import 'package:flow_chart_editor/components/measure_size.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
-typedef PointChangeCallBack = void Function(Offset pos);
+typedef PointChangeCallBack = void Function(Offset newPosition, Offset delta);
 typedef SizeChangedCallBack = void Function(Size size);
 
 class FlowNode extends HookWidget {
@@ -27,14 +27,15 @@ class FlowNode extends HookWidget {
   Widget build(BuildContext context) {
     final pos = useState(position);
     final isDragging = useState(false);
-    final menuOpen = useState(false);
-    // useEffect(
-    //   () {
-    //     pos.value = position;
-    //     return null;
-    //   },
-    //   [position],
-    // );
+    // final menuOpen = useState(false);
+    useEffect(
+      () {
+        if (isDragging.value) return;
+        pos.value = position;
+        return null;
+      },
+      [position],
+    );
 
     final modChild = AnimatedScale(
       duration: const Duration(milliseconds: 150),
@@ -69,23 +70,19 @@ class FlowNode extends HookWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
-            onSecondaryTap: () => menuOpen.value = !menuOpen.value,
             onPanStart: (details) {
               isDragging.value = true;
-              onMoveStart?.call(pos.value);
+              onMoveStart?.call(pos.value, Offset.zero);
             },
             onPanEnd: (details) {
               isDragging.value = false;
-              onMoveEnd?.call(pos.value);
+              onMoveEnd?.call(pos.value, Offset.zero);
             },
             onPanUpdate: (details) {
               if (isDragging.value) {
-                final newPos = Offset(
-                  pos.value.dx + details.delta.dx,
-                  pos.value.dy + details.delta.dy,
-                );
+                final newPos = pos.value + details.delta;
                 pos.value = newPos;
-                onMove?.call(newPos);
+                onMove?.call(newPos, details.delta);
               }
             },
             child: MeasureSize(
@@ -93,34 +90,6 @@ class FlowNode extends HookWidget {
               child: modChild,
             ),
           ),
-          if (menuOpen.value)
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 10),
-              width: 150,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Color.fromARGB(255, 51, 190, 200)),
-              ),
-              child: Column(
-                children: [
-                  ListTile(
-                    dense: true,
-                    title: Text("Option 1"),
-                    onTap: () => menuOpen.value = false,
-                  ),
-                  ListTile(
-                    dense: true,
-                    title: Text("Option 2"),
-                    onTap: () => menuOpen.value = false,
-                  ),
-                  ListTile(
-                    dense: true,
-                    title: Text("Option 3"),
-                    onTap: () => menuOpen.value = false,
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     );
