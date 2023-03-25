@@ -2,8 +2,8 @@ import 'package:flow_chart_editor/utils/path_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
-import 'flow_node_connection_data.dart';
-import 'flow_node_data.dart';
+import '../../data/flow_node_connection_data.dart';
+import '../../data/flow_node_data.dart';
 
 class FlowNodeConnectionCanvas extends HookWidget {
   const FlowNodeConnectionCanvas(

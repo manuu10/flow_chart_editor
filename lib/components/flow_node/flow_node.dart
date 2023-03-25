@@ -1,10 +1,12 @@
 import 'dart:math';
 
 import 'package:context_menus/context_menus.dart';
-import 'package:flow_chart_editor/components/flow_node/flow_node_connection_data.dart';
+
 import 'package:flow_chart_editor/components/measure_size.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+
+import '../../data/flow_node_connection_data.dart';
 
 typedef PointChangeCallBack = void Function(Offset newPosition, Offset delta);
 typedef SizeChangedCallBack = void Function(Size size);

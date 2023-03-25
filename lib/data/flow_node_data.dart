@@ -1,8 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:math';
 import 'dart:ui';
 
-import 'package:flow_chart_editor/components/flow_node/flow_node_connection_data.dart';
+import 'flow_node_connection_data.dart';
 
 enum FlowNodeType {
   standard,
