@@ -10,7 +10,12 @@ enum FlowNodeAnchor {
   bottom,
   right,
   left,
-  center,
+  center;
+
+  bool get isVertical =>
+      this == FlowNodeAnchor.top || this == FlowNodeAnchor.bottom;
+  bool get isHorizontal =>
+      this == FlowNodeAnchor.left || this == FlowNodeAnchor.right;
 }
 
 class FlowNodeConnection {

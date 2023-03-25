@@ -20,6 +20,16 @@ class RootApp extends StatelessWidget {
           bodyColor: Color.fromARGB(255, 147, 154, 153),
           displayColor: Color.fromARGB(255, 147, 154, 153),
         ),
+        tooltipTheme: baseTheme.tooltipTheme.copyWith(
+          textStyle: TextStyle(color: Color.fromARGB(255, 158, 171, 248)),
+          decoration: BoxDecoration(
+            color: Color.fromARGB(255, 0, 0, 0),
+            border: Border(
+              left: BorderSide(color: Colors.indigo, width: 3),
+              right: BorderSide(color: Colors.indigo, width: 3),
+            ),
+          ),
+        ),
       ),
       home: ContextMenuOverlay(
         buttonBuilder: (context, config, [_]) {

@@ -126,18 +126,22 @@ class FlowNode extends HookWidget {
               FlowNodeAnchorInteractable(
                 FlowNodeAnchor.bottom,
                 (v) => onStartConnection?.call(v),
+                showConnectionPoints,
               ),
               FlowNodeAnchorInteractable(
                 FlowNodeAnchor.top,
                 (v) => onStartConnection?.call(v),
+                showConnectionPoints,
               ),
               FlowNodeAnchorInteractable(
                 FlowNodeAnchor.left,
                 (v) => onStartConnection?.call(v),
+                showConnectionPoints,
               ),
               FlowNodeAnchorInteractable(
                 FlowNodeAnchor.right,
                 (v) => onStartConnection?.call(v),
+                showConnectionPoints,
               ),
             ]
           ],
@@ -147,10 +151,12 @@ class FlowNode extends HookWidget {
   }
 }
 
-class FlowNodeAnchorInteractable extends StatelessWidget {
-  const FlowNodeAnchorInteractable(this.anchor, this.onClick, {super.key});
+class FlowNodeAnchorInteractable extends HookWidget {
+  const FlowNodeAnchorInteractable(this.anchor, this.onClick, this.isConnecting,
+      {super.key});
   final FlowNodeAnchor anchor;
   final StartConnectionCallBack onClick;
+  final bool isConnecting;
   @override
   Widget build(BuildContext context) {
     var alignment = Alignment.topCenter;
@@ -171,22 +177,34 @@ class FlowNodeAnchorInteractable extends StatelessWidget {
         break;
     }
 
+    final isHovered = useState(false);
+
     return Positioned.fill(
-      // right: anchor == FlowNodeAnchor.right ? -10 : 0,
-      // left: anchor == FlowNodeAnchor.left ? -10 : 0,
-      // top: anchor == FlowNodeAnchor.top ? -10 : 0,
-      // bottom: anchor == FlowNodeAnchor.bottom ? -10 : 0,
+      right: anchor == FlowNodeAnchor.right ? 5 : 0,
+      left: anchor == FlowNodeAnchor.left ? 5 : 0,
+      top: anchor == FlowNodeAnchor.top ? 5 : 0,
+      bottom: anchor == FlowNodeAnchor.bottom ? 5 : 0,
       child: Align(
         alignment: alignment,
-        child: GestureDetector(
-          onTap: () => onClick(anchor),
-          child: MouseRegion(
-            onHover: (event) {},
-            child: const ColoredBox(
-              color: Colors.red,
-              child: SizedBox(
-                width: 10,
-                height: 10,
+        child: Tooltip(
+          message: isConnecting ? "Connect here" : "Start new Connection here",
+          child: GestureDetector(
+            onTap: () => onClick(anchor),
+            child: MouseRegion(
+              onHover: (event) => isHovered.value = true,
+              onExit: (event) => isHovered.value = false,
+              child: Container(
+                decoration: BoxDecoration(
+                    color: isHovered.value
+                        ? const Color.fromARGB(105, 50, 238, 223)
+                        : const Color.fromARGB(105, 0, 0, 0),
+                    border: Border.all(
+                        color: const Color.fromARGB(255, 88, 88, 88)),
+                    borderRadius: BorderRadius.circular(4)),
+                child: SizedBox(
+                  width: !anchor.isHorizontal ? 30 : 15,
+                  height: !anchor.isVertical ? 30 : 15,
+                ),
               ),
             ),
           ),
