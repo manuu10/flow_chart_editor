@@ -12,9 +12,16 @@ import '../data/flow_node_connection_data.dart';
 import '../data/flow_node_data.dart';
 
 class FlowCanvas extends HookWidget {
-  const FlowCanvas(this.sketch, {Key? key}) : super(key: key);
-
+  const FlowCanvas(
+    this.sketch, {
+    Key? key,
+    this.onNodesChanged,
+    this.onConnectionsChanged,
+  }) : super(key: key);
   final FlowSketch sketch;
+  final void Function(List<FlowNodeData> nodes)? onNodesChanged;
+  final void Function(List<FlowNodeConnection> connection)?
+      onConnectionsChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +30,13 @@ class FlowCanvas extends HookWidget {
     final mousePosition = useState(Offset.zero);
     final connectMode =
         connections.value.any((element) => element.goingToMouse);
+
+    useEffect(() {
+      nodes.value = sketch.nodes;
+      connections.value = sketch.connections;
+      return null;
+    }, [sketch.id]);
+
     return GestureDetector(
       onTap: () {
         connections.value = connections.value
@@ -44,6 +58,7 @@ class FlowCanvas extends HookWidget {
                     ...nodes.value,
                     FlowNodeData(id: id, position: mousePosition.value),
                   ];
+                  onNodesChanged?.call(nodes.value);
                 },
                 icon: const Icon(Icons.add),
               ),
@@ -76,6 +91,7 @@ class FlowCanvas extends HookWidget {
                             }
                             return conn;
                           }).toList();
+                          onConnectionsChanged?.call(connections.value);
                           return;
                         }
 
@@ -88,6 +104,7 @@ class FlowCanvas extends HookWidget {
                         nodes.value = nodes.value
                             .where((element) => element.id != e.id)
                             .toList();
+                        onNodesChanged?.call(nodes.value);
                       },
                       onSizeChange: (Size size) {
                         nodes.value = nodes.value.map((nd) {
@@ -95,11 +112,15 @@ class FlowCanvas extends HookWidget {
                           return nd.copyWith(size: size);
                         }).toList();
                       },
-                      onMove: (pos, delta) =>
-                          nodes.value = nodes.value.map((nd) {
-                        if (e != nd) return nd;
-                        return nd.copyWith(position: pos);
-                      }).toList(),
+                      onMoveEnd: (newPosition, delta) {
+                        onNodesChanged?.call(nodes.value);
+                      },
+                      onMove: (pos, delta) {
+                        nodes.value = nodes.value.map((nd) {
+                          if (e != nd) return nd;
+                          return nd.copyWith(position: pos);
+                        }).toList();
+                      },
                       position: e.position,
                       child: Text(
                         "${e.id}\n${e.position}\n${e.size}",

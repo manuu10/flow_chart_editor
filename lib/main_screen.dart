@@ -1,6 +1,9 @@
 import 'package:flow_chart_editor/components/flow_canvas.dart';
+import 'package:flow_chart_editor/components/sidebar.dart';
 import 'package:flow_chart_editor/data/sketch.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'data/flow_node_connection_data.dart';
 import 'data/flow_node_data.dart';
@@ -65,21 +68,52 @@ final sketch = FlowSketch(
     connections: defaultConnections,
     created: DateTime.now());
 
-class MainScreen extends StatelessWidget {
+final sketchProvider = StateProvider((ref) => <FlowSketch>[sketch]);
+
+class MainScreen extends HookConsumerWidget {
   const MainScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final sketches = ref.watch(sketchProvider);
+    final selectedSketchID = useState<String?>(null);
+    final selectedSketchIndex =
+        sketches.indexWhere((e) => e.id == selectedSketchID.value);
+    final selectedSketch =
+        selectedSketchIndex != -1 ? sketches[selectedSketchIndex] : null;
+
     return Scaffold(
       body: Row(
         children: [
           SizedBox(
             width: 300,
-            child: Container(
-              color: Color.fromARGB(255, 32, 6, 5),
+            child: AsideNavigation(
+              onSelect: (value) => selectedSketchID.value = value.id,
+              selectedSketchID: selectedSketchID.value,
             ),
           ),
-          Expanded(child: FlowCanvas(sketch)),
+          if (selectedSketch != null)
+            Expanded(
+              child: FlowCanvas(
+                selectedSketch,
+                onConnectionsChanged: (connection) {
+                  ref.read(sketchProvider.notifier).state = sketches.map((e) {
+                    if (e.id == selectedSketchID.value) {
+                      return e.copyWith(connections: connection);
+                    }
+                    return e;
+                  }).toList();
+                },
+                onNodesChanged: (nodes) {
+                  ref.read(sketchProvider.notifier).state = sketches.map((e) {
+                    if (e.id == selectedSketchID.value) {
+                      return e.copyWith(nodes: nodes);
+                    }
+                    return e;
+                  }).toList();
+                },
+              ),
+            ),
         ],
       ),
     );
