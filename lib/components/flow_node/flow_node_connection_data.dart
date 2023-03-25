@@ -26,4 +26,30 @@ class FlowNodeConnection {
     this.fromAnchor = FlowNodeAnchor.center,
     this.toAnchor = FlowNodeAnchor.center,
   });
+
+  static const mouseID = "mouse";
+
+  factory FlowNodeConnection.createToMouse(
+      String fromID, FlowNodeAnchor fromAnchor) {
+    return FlowNodeConnection(
+        fromNodeID: fromID, toNodeID: mouseID, fromAnchor: fromAnchor);
+  }
+
+  bool get goingToMouse => toNodeID == mouseID;
+
+  FlowNodeConnection copyWith({
+    String? fromNodeID,
+    String? toNodeID,
+    FlowNodeConnectionStroke? strokeType,
+    FlowNodeAnchor? fromAnchor,
+    FlowNodeAnchor? toAnchor,
+  }) {
+    return FlowNodeConnection(
+      fromNodeID: fromNodeID ?? this.fromNodeID,
+      toNodeID: toNodeID ?? this.toNodeID,
+      strokeType: strokeType ?? this.strokeType,
+      fromAnchor: fromAnchor ?? this.fromAnchor,
+      toAnchor: toAnchor ?? this.toAnchor,
+    );
+  }
 }

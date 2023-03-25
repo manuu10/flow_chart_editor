@@ -1,12 +1,14 @@
 import 'dart:math';
 
 import 'package:context_menus/context_menus.dart';
+import 'package:flow_chart_editor/components/flow_node/flow_node_connection_data.dart';
 import 'package:flow_chart_editor/components/measure_size.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 typedef PointChangeCallBack = void Function(Offset newPosition, Offset delta);
 typedef SizeChangedCallBack = void Function(Size size);
+typedef StartConnectionCallBack = void Function(FlowNodeAnchor startAnchor);
 
 class FlowNode extends HookWidget {
   const FlowNode({
@@ -18,6 +20,8 @@ class FlowNode extends HookWidget {
     this.onMoveStart,
     this.onSizeChange,
     this.onRemove,
+    this.onStartConnection,
+    this.showConnectionPoints = false,
   });
   final Offset position;
   final Widget child;
@@ -26,11 +30,14 @@ class FlowNode extends HookWidget {
   final PointChangeCallBack? onMoveEnd;
   final PointChangeCallBack? onMoveStart;
   final SizeChangedCallBack? onSizeChange;
+  final StartConnectionCallBack? onStartConnection;
+  final bool showConnectionPoints;
   @override
   Widget build(BuildContext context) {
     final pos = useState(position);
     final isDragging = useState(false);
     final isHovered = useState(false);
+    final widgetSize = useState(Size.zero);
     useEffect(
       () {
         if (isDragging.value) return;
@@ -42,7 +49,7 @@ class FlowNode extends HookWidget {
 
     final modChild = AnimatedScale(
       duration: const Duration(milliseconds: 150),
-      scale: isDragging.value ? 1.15 : 1,
+      scale: isDragging.value ? 1.03 : 1,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
@@ -76,35 +83,111 @@ class FlowNode extends HookWidget {
         onEnter: (event) => isHovered.value = true,
         onExit: (event) => isHovered.value = false,
         cursor: SystemMouseCursors.click,
-        child: ContextMenuRegion(
-          contextMenu: GenericContextMenu(
-            buttonConfigs: [
-              ContextMenuButtonConfig(
-                "Remove",
-                icon: Icon(Icons.delete_forever),
-                onPressed: onRemove,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            ContextMenuRegion(
+              contextMenu: GenericContextMenu(
+                buttonConfigs: [
+                  ContextMenuButtonConfig(
+                    "Remove",
+                    icon: Icon(Icons.delete_forever),
+                    onPressed: onRemove,
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: GestureDetector(
-            onPanStart: (details) {
-              isDragging.value = true;
-              onMoveStart?.call(pos.value, Offset.zero);
-            },
-            onPanEnd: (details) {
-              isDragging.value = false;
-              onMoveEnd?.call(pos.value, Offset.zero);
-            },
-            onPanUpdate: (details) {
-              if (isDragging.value) {
-                final newPos = pos.value + details.delta;
-                pos.value = newPos;
-                onMove?.call(newPos, details.delta);
-              }
-            },
-            child: MeasureSize(
-              onChange: (Size size) => onSizeChange?.call(size),
-              child: modChild,
+              child: GestureDetector(
+                onPanStart: (details) {
+                  isDragging.value = true;
+                  onMoveStart?.call(pos.value, Offset.zero);
+                },
+                onPanEnd: (details) {
+                  isDragging.value = false;
+                  onMoveEnd?.call(pos.value, Offset.zero);
+                },
+                onPanUpdate: (details) {
+                  if (isDragging.value) {
+                    final newPos = pos.value + details.delta;
+                    pos.value = newPos;
+                    onMove?.call(newPos, details.delta);
+                  }
+                },
+                child: MeasureSize(
+                  onChange: (Size size) {
+                    onSizeChange?.call(size);
+                    widgetSize.value = size;
+                  },
+                  child: modChild,
+                ),
+              ),
+            ),
+            if ((isHovered.value && !isDragging.value) ||
+                showConnectionPoints) ...[
+              FlowNodeAnchorInteractable(
+                FlowNodeAnchor.bottom,
+                (v) => onStartConnection?.call(v),
+              ),
+              FlowNodeAnchorInteractable(
+                FlowNodeAnchor.top,
+                (v) => onStartConnection?.call(v),
+              ),
+              FlowNodeAnchorInteractable(
+                FlowNodeAnchor.left,
+                (v) => onStartConnection?.call(v),
+              ),
+              FlowNodeAnchorInteractable(
+                FlowNodeAnchor.right,
+                (v) => onStartConnection?.call(v),
+              ),
+            ]
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class FlowNodeAnchorInteractable extends StatelessWidget {
+  const FlowNodeAnchorInteractable(this.anchor, this.onClick, {super.key});
+  final FlowNodeAnchor anchor;
+  final StartConnectionCallBack onClick;
+  @override
+  Widget build(BuildContext context) {
+    var alignment = Alignment.topCenter;
+    switch (anchor) {
+      case FlowNodeAnchor.top:
+        alignment = Alignment.topCenter;
+        break;
+      case FlowNodeAnchor.bottom:
+        alignment = Alignment.bottomCenter;
+        break;
+      case FlowNodeAnchor.right:
+        alignment = Alignment.centerRight;
+        break;
+      case FlowNodeAnchor.left:
+        alignment = Alignment.centerLeft;
+        break;
+      case FlowNodeAnchor.center:
+        break;
+    }
+
+    return Positioned.fill(
+      // right: anchor == FlowNodeAnchor.right ? -10 : 0,
+      // left: anchor == FlowNodeAnchor.left ? -10 : 0,
+      // top: anchor == FlowNodeAnchor.top ? -10 : 0,
+      // bottom: anchor == FlowNodeAnchor.bottom ? -10 : 0,
+      child: Align(
+        alignment: alignment,
+        child: GestureDetector(
+          onTap: () => onClick(anchor),
+          child: MouseRegion(
+            onHover: (event) {},
+            child: const ColoredBox(
+              color: Colors.red,
+              child: SizedBox(
+                width: 10,
+                height: 10,
+              ),
             ),
           ),
         ),

@@ -6,10 +6,13 @@ import 'flow_node_connection_data.dart';
 import 'flow_node_data.dart';
 
 class FlowNodeConnectionCanvas extends HookWidget {
-  const FlowNodeConnectionCanvas(this.nodes, this.connections, {Key? key})
+  const FlowNodeConnectionCanvas(
+      this.nodes, this.connections, this.currentMousePosition,
+      {Key? key})
       : super(key: key);
   final List<FlowNodeData> nodes;
   final List<FlowNodeConnection> connections;
+  final Offset currentMousePosition;
   @override
   Widget build(BuildContext context) {
     final animController = useAnimationController(
@@ -26,7 +29,12 @@ class FlowNodeConnectionCanvas extends HookWidget {
     }, []);
 
     return CustomPaint(
-      painter: FlowEdgesPainter(nodes, connections, animController),
+      painter: FlowEdgesPainter(
+        nodes,
+        connections,
+        animController,
+        currentMousePosition,
+      ),
     );
   }
 }
@@ -35,27 +43,27 @@ class FlowEdgesPainter extends CustomPainter {
   final List<FlowNodeData> nodes;
   final List<FlowNodeConnection> connections;
   final Animation anim;
-
-  FlowEdgesPainter(this.nodes, this.connections, this.anim)
+  final Offset mousePosition;
+  FlowEdgesPainter(this.nodes, this.connections, this.anim, this.mousePosition)
       : super(repaint: anim);
 
-  static final p = Paint()
+  static final mainPathPaint = Paint()
     ..color = const Color.fromARGB(255, 0, 115, 130)
     ..style = PaintingStyle.stroke
     ..strokeWidth = 2;
-  static final pDimmed = Paint()
+  static final mainPathDimmed = Paint()
     ..color = Color.fromARGB(255, 61, 61, 61)
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1;
-  static final cp = Paint()
+  static final movingCirclePaint = Paint()
     ..color = const Color.fromARGB(255, 255, 128, 119)
     ..strokeWidth = 2;
 
-  static final cpa = Paint()
+  static final anchorPaint = Paint()
     ..color = const Color.fromARGB(255, 40, 216, 239)
     ..style = PaintingStyle.stroke
     ..strokeWidth = 3;
-  static final cpab = Paint()
+  static final anchorPaintBG = Paint()
     ..color = const Color.fromARGB(255, 0, 0, 0)
     ..strokeWidth = 3;
 
@@ -73,9 +81,14 @@ class FlowEdgesPainter extends CustomPainter {
           fromPoint = node.pointFromAnchor(conn.fromAnchor);
           fromPointOffset =
               fromPoint + node.offsetFromAnchor(conn.fromAnchor, 100);
-        } else if (node.id == conn.toNodeID) {
+        }
+        if (node.id == conn.toNodeID) {
           toPoint = node.pointFromAnchor(conn.toAnchor);
           toPointOffset = toPoint + node.offsetFromAnchor(conn.toAnchor, 100);
+        }
+        if (conn.goingToMouse) {
+          toPoint = mousePosition;
+          toPointOffset = mousePosition;
         }
 
         if (toPoint != null &&
@@ -86,7 +99,7 @@ class FlowEdgesPainter extends CustomPainter {
       if (fromPoint == null ||
           toPoint == null ||
           fromPointOffset == null ||
-          toPointOffset == null) return;
+          toPointOffset == null) continue;
 
       final path = Path()
         ..moveTo(fromPoint.dx, fromPoint.dy)
@@ -99,17 +112,17 @@ class FlowEdgesPainter extends CustomPainter {
           toPoint.dy,
         );
 
-      canvas.drawPath(path, pDimmed);
+      canvas.drawPath(path, mainPathDimmed);
       final animatedPath = PathUtils.createAnimatedPath(path, anim.value);
-      canvas.drawPath(animatedPath, p);
+      canvas.drawPath(animatedPath, mainPathPaint);
       // final animPoint = anim.drive(Tween(begin: fromPoint, end: toPoint));
       final animPoint = PathUtils.getAnimatedPointInPath(path, anim.value);
 
-      canvas.drawCircle(animPoint, 4, cp);
-      canvas.drawCircle(fromPoint, anchorRadius, cpab);
-      canvas.drawCircle(toPoint, anchorRadius, cpab);
-      canvas.drawCircle(fromPoint, anchorRadius, cpa);
-      canvas.drawCircle(toPoint, anchorRadius, cpa);
+      canvas.drawCircle(animPoint, 4, movingCirclePaint);
+      canvas.drawCircle(fromPoint, anchorRadius, anchorPaintBG);
+      canvas.drawCircle(toPoint, anchorRadius, anchorPaintBG);
+      canvas.drawCircle(fromPoint, anchorRadius, anchorPaint);
+      canvas.drawCircle(toPoint, anchorRadius, anchorPaint);
     }
   }
 
